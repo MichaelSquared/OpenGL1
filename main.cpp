@@ -6,6 +6,8 @@
 
 void drawTriangle();
 
+void drawCube();
+
 
 int main()
 {
@@ -58,7 +60,8 @@ int main()
             }
         }
         glClear(GL_COLOR_BUFFER_BIT);
-        drawTriangle();
+        //drawTriangle();
+        drawCube();
         SDL_GL_SwapWindow(window);
 
 
@@ -82,6 +85,23 @@ void drawTriangle()
      glPopMatrix();
 }
 
+
+void drawCube()
+{
+    static int rot=0;
+    glPushMatrix();
+      glRotated(++rot,0,1,0);
+      glBegin(GL_QUADS);
+        glColor3f(1.0,0.0,0.0);
+        glVertex3f(-1,-1,1);
+        glVertex3f(-1,1,1);
+        glVertex3f(1,1,1);
+        glVertex3f(1,-1,1);
+
+
+      glEnd();
+    glPopMatrix();
+}
 
 
 
