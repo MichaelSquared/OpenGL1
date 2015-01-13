@@ -98,14 +98,46 @@ void drawCube()
 {
     static int rot=0;
     glPushMatrix();
-      glRotated(++rot,0,1,0);
+      glRotated(++rot,2,1,0);
+      glRotated(++rot,0,5,2);
       glBegin(GL_QUADS);
+
         glColor3f(1.0,0.0,0.0);
+        glVertex3f(-1,1,1);
+        glVertex3f(-1,1,-1);
+        glVertex3f(1,1,-1);
+        glVertex3f(1,1,1);
+
+        glColor3f(0.0,1.0,0.0);
         glVertex3f(-1,-1,1);
+        glVertex3f(-1,-1,-1);
+        glVertex3f(1,-1,-1);
+        glVertex3f(1,-1,1);
+
+        glColor3f(0.0,0.0,1.0);
+        glVertex3f(-1,1,-1);
+        glVertex3f(1,1,-1);
+        glVertex3f(1,-1,-1);
+        glVertex3f(-1,-1,-1);
+
+        glColor3f(2.0,1.0,0.0);
+        glVertex3f(1,1,-1);
+        glVertex3f(1,1,1);
+        glVertex3f(1,-1,1);
+        glVertex3f(1,-1,-1);
+
+        glColor3f(0.0,1.0,1.5);
+        glVertex3f(-1,1,-1);
+        glVertex3f(-1,1,1);
+        glVertex3f(-1,-1,1);
+        glVertex3f(-1,-1,-1);
+
+
+        glColor3f(1.0,0.0,0.5);
         glVertex3f(-1,1,1);
         glVertex3f(1,1,1);
         glVertex3f(1,-1,1);
-
+        glVertex3f(-1,-1,1);
 
       glEnd();
     glPopMatrix();
