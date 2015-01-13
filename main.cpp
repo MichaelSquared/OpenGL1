@@ -57,6 +57,14 @@ int main()
             switch( event.type)
             {
                 case SDL_QUIT : quit =true; break;
+                case SDL_KEYDOWN :
+                    switch(event.key.keysym.sym)
+                    {
+                        case SDLK_ESCAPE : quit= true; break;
+                        case SDLK_w : glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); break;
+                        case SDLK_s : glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); break;
+                    }
+                break;
             }
         }
         glClear(GL_COLOR_BUFFER_BIT);
