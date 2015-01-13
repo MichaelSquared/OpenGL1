@@ -102,37 +102,38 @@ void drawCube()
       glRotated(++rot,0,5,2);
       glBegin(GL_QUADS);
 
+        //Top
         glColor3f(1.0,0.0,0.0);
         glVertex3f(-1,1,1);
         glVertex3f(-1,1,-1);
         glVertex3f(1,1,-1);
         glVertex3f(1,1,1);
-
+        //Bottom
         glColor3f(0.0,1.0,0.0);
         glVertex3f(-1,-1,1);
         glVertex3f(-1,-1,-1);
         glVertex3f(1,-1,-1);
         glVertex3f(1,-1,1);
-
+        //Back
         glColor3f(0.0,0.0,1.0);
         glVertex3f(-1,1,-1);
         glVertex3f(1,1,-1);
         glVertex3f(1,-1,-1);
         glVertex3f(-1,-1,-1);
-
+        //Right side
         glColor3f(2.0,1.0,0.0);
         glVertex3f(1,1,-1);
         glVertex3f(1,1,1);
         glVertex3f(1,-1,1);
         glVertex3f(1,-1,-1);
-
+        //Left side
         glColor3f(0.0,1.0,1.5);
         glVertex3f(-1,1,-1);
         glVertex3f(-1,1,1);
         glVertex3f(-1,-1,1);
         glVertex3f(-1,-1,-1);
 
-
+        //Front
         glColor3f(1.0,0.0,0.5);
         glVertex3f(-1,1,1);
         glVertex3f(1,1,1);
