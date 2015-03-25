@@ -6,7 +6,7 @@
 #include <ngl/Colour.h>
 #include <ngl/Light.h>
 #include <ngl/Text.h>
-#include "Sphere.h"
+#include "Boid.h"
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
 /// @brief this class inherits from the Qt OpenGLWindow and allows us to use NGL to draw OpenGL
@@ -27,7 +27,7 @@ class NGLScene : public OpenGLWindow
     /// @brief ctor for our NGL drawing class
     /// @param [in] parent the parent window to the class
     //----------------------------------------------------------------------------------------------------------------------
-    NGLScene(int _numSpheres, QWindow *_parent=0);
+    NGLScene(int _numBoids, QWindow *_parent=0);
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief dtor must close down ngl and release OpenGL resources
     //----------------------------------------------------------------------------------------------------------------------
@@ -92,32 +92,32 @@ private:
     //----------------------------------------------------------------------------------------------------------------------
     ngl::VertexArrayObject *m_vao;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief a dynamic array to contain our spheres
+    /// @brief a dynamic array to contain our boids
     //----------------------------------------------------------------------------------------------------------------------
-    std::vector <Sphere> m_sphereArray;
+    std::vector <Boid> m_boidArray;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief the bounding box to contain the spheres
+    /// @brief the bounding box to contain the boids
     //----------------------------------------------------------------------------------------------------------------------
     ngl::BBox *m_bbox;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief flag to indicate if we need to do spheresphere checks
+    /// @brief flag to indicate if we need to do boidboid checks
     //----------------------------------------------------------------------------------------------------------------------
-    bool m_checkSphereSphere;
+    bool m_checkBoidBoid;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief the number of spheres we are creating
+    /// @brief the number of boids we are creating
     //----------------------------------------------------------------------------------------------------------------------
-    int m_numSpheres;
+    int m_numBoids;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief timer to change the sphere position by calling update()
+    /// @brief timer to change the boid position by calling update()
     //----------------------------------------------------------------------------------------------------------------------
-    int m_sphereUpdateTimer;
+    int m_boidUpdateTimer;
 
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief flag to indicate if animation is active or not
     //----------------------------------------------------------------------------------------------------------------------
     bool m_animate;
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief this method is called once per frame to update the sphere positions
+    /// @brief this method is called once per frame to update the boid positions
     /// and do the collision detection
     //----------------------------------------------------------------------------------------------------------------------
     void update();
@@ -173,33 +173,33 @@ private:
     //----------------------------------------------------------------------------------------------------------------------
     void checkCollisions();
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief do the actual sphereSphere collisions
-    /// @param[in] _pos1 the position of the first sphere
-    ///	@param[in] _radius1 the radius of the first sphere
-    /// @param[in] _pos2 the position of the second sphere
-    ///	@param[in] _radius2 the radius of the second sphere
+    /// @brief do the actual boidboid collisions
+    /// @param[in] _pos1 the position of the first boid
+    ///	@param[in] _radius1 the radius of the first boid
+    /// @param[in] _pos2 the position of the second boid
+    ///	@param[in] _radius2 the radius of the second boid
     //----------------------------------------------------------------------------------------------------------------------
-    bool sphereSphereCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 );
+    bool boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 );
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief check the bounding box collisions
     //----------------------------------------------------------------------------------------------------------------------
     void BBoxCollision();
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief check the sphere collisions
+    /// @brief check the boid collisions
     //----------------------------------------------------------------------------------------------------------------------
-    void checkSphereCollisions();
+    void checkBoidCollisions();
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief reset the sphere array
+    /// @brief reset the boid array
     //----------------------------------------------------------------------------------------------------------------------
-    void resetSpheres();
+    void resetBoids();
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief add a new sphere
+    /// @brief add a new boid
     //----------------------------------------------------------------------------------------------------------------------
-    void addSphere();
+    void addBoid();
     //----------------------------------------------------------------------------------------------------------------------
-    /// @brief remove the last sphere added
+    /// @brief remove the last boid added
     //----------------------------------------------------------------------------------------------------------------------
-    void removeSphere();
+    void removeBoid();
     //----------------------------------------------------------------------------------------------------------------------
 
 };

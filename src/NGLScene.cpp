@@ -27,7 +27,7 @@ const static float ZOOM=0.1;
 //----------------------------------------------------------------------------------------------------------------------
 const static int s_extents=20;
 
-NGLScene::NGLScene(int _numSpheres,QWindow *_parent) : OpenGLWindow(_parent)
+NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent)
 {
   // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
   m_rotate=false;
@@ -36,29 +36,31 @@ NGLScene::NGLScene(int _numSpheres,QWindow *_parent) : OpenGLWindow(_parent)
   m_spinYFace=0;
   setTitle("Flocking System");
   m_animate=true;
-  m_checkSphereSphere=false;
+  m_checkBoidBoid=false;
   // create vectors for the position and direction
-  m_numSpheres=_numSpheres;
-  resetSpheres();
+  m_numBoids=_numBoids;
+  resetBoids();
 
 }
 
-void NGLScene::resetSpheres()
+//----------------------------------------------------------------------------------------------------------------------
+void NGLScene::resetBoids()
 {
-	std::vector<Sphere>::iterator begin=m_sphereArray.begin();
-	std::vector<Sphere>::iterator end=m_sphereArray.end();
-	m_sphereArray.erase(begin,end);
+    std::vector<Boid>::iterator begin=m_boidArray.begin();
+    std::vector<Boid>::iterator end=m_boidArray.end();
+    m_boidArray.erase(begin,end);
 	ngl::Vec3 pos(0,0,0);
 	ngl::Vec3 dir;
 	ngl::Random *rng=ngl::Random::instance();
 	// loop and create the initial particle list
-	for(int i=0; i<m_numSpheres; ++i)
+    for(int i=0; i<m_numBoids; ++i)
 	{
 		dir=rng->getRandomVec3();
-		// add the spheres to the end of the particle list
-		m_sphereArray.push_back(Sphere(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
+        // add the boids to the end of the particle list
+        m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
 	}
 
+//----------------------------------------------------------------------------------------------------------------------
 }
 NGLScene::~NGLScene()
 {
@@ -81,7 +83,7 @@ void NGLScene::resizeEvent(QResizeEvent *_event )
   }
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::initialize()
 {
   // we must call this first before any other GL commands to load and link the
@@ -118,18 +120,18 @@ void NGLScene::initialize()
    glEnable(GL_DEPTH_TEST); // for removal of hidden surfaces
 
   //ngl::VAOPrimitives *prim =  ngl::VAOPrimitives::instance();
-  //prim->createSphere("sphere",1.0,40);
+  //prim->createBoid("boid",1.0,40);
   //create our Bounding Box, needs to be done once we have a gl context as we create VAO for drawing
   m_bbox = new ngl::BBox(ngl::Vec3(0,0,0),80,80,80);
 
   m_bbox->setDrawMode(GL_LINE);
   // as re-size is not explicitly called we need to do this.
   glViewport(0,0,width(),height());
-  m_sphereUpdateTimer=startTimer(40);
+  m_boidUpdateTimer=startTimer(40);
 
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::loadMatricesToShader()
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
@@ -146,6 +148,7 @@ void NGLScene::loadMatricesToShader()
   shader->setShaderParamFromMat3("normalMatrix",normalMatrix);
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::loadMatricesToColourShader()
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
@@ -159,7 +162,7 @@ void NGLScene::loadMatricesToColourShader()
 
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::render()
 {
   // clear the screen and depth buffer
@@ -188,7 +191,7 @@ void NGLScene::render()
 
 //  shader->use("nglDiffuseShader");
 
-    BOOST_FOREACH(Sphere s, m_sphereArray)
+    BOOST_FOREACH(Boid s, m_boidArray)
     {
         ngl::Random* rand = ngl::Random::instance();
         ngl::Colour boidColour = s.isDiscoBoid() ? rand->getRandomColour() : s.getBoidColour();
@@ -206,13 +209,13 @@ void NGLScene::update()
 {
 
 /***********************************************************************/
-    //velocity.add(acceleration);
+    //velocity += acceleration;
     //velocity.limit(maxSpeed);
-    //location.add(velocity);
-    //accelaration.mult(0);
+    //location += velocity;
+    //accelaration *= 0;
 /***********************************************************************/
 
-	BOOST_FOREACH(Sphere &s, m_sphereArray)
+    BOOST_FOREACH(Boid &s, m_boidArray)
 	{
 		s.move();
 	}
@@ -304,8 +307,8 @@ void NGLScene::wheelEvent(QWheelEvent *_event)
 	}
 	renderLater();
 }
-//----------------------------------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::keyPressEvent(QKeyEvent *_event)
 {
   // this method is called every time the main window recives a key event.
@@ -319,11 +322,11 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   // show windowed
   case Qt::Key_N : showNormal(); break;
   case  Qt::Key_Space : m_animate^=true; break;
-  case Qt::Key_S : m_checkSphereSphere^=true; break;
-  case Qt::Key_R : resetSpheres(); break;
+  case Qt::Key_S : m_checkBoidBoid^=true; break;
+  case Qt::Key_R : resetBoids(); break;
 
-  case Qt::Key_Minus : removeSphere(); break;
-  case Qt::Key_Plus : addSphere(); break;
+  case Qt::Key_Minus : removeBoid(); break;
+  case Qt::Key_Plus : addBoid(); break;
 
   default : break;
   }
@@ -332,9 +335,10 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
     renderLater();
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 void NGLScene::timerEvent(QTimerEvent *_event )
 {
-	if(_event->timerId() == m_sphereUpdateTimer)
+    if(_event->timerId() == m_boidUpdateTimer)
 	{
 		if (m_animate !=true)
 		{
@@ -345,15 +349,12 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 	}
 }
 
-
-
-
-
-bool NGLScene::sphereSphereCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
+//----------------------------------------------------------------------------------------------------------------------
+bool NGLScene::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
 {
-  // the relative position of the spheres
+  // the relative position of the boids
   ngl::Vec3 relPos;
-  //min an max distances of the spheres
+  //min an max distances of the boids
   GLfloat dist;
   GLfloat minDist;
   GLfloat len;
@@ -374,9 +375,6 @@ bool NGLScene::sphereSphereCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Ve
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-
-
-
 void NGLScene::BBoxCollision()
 {
   //create an array of the extents of the bounding box
@@ -390,21 +388,21 @@ void NGLScene::BBoxCollision()
   // D is the distance of the Agent from the Plane. If it is less than ext[i] then there is
   // no collision
   GLfloat D;
-  // Loop for each sphere in the vector list
-  BOOST_FOREACH(Sphere &s, m_sphereArray)
+  // Loop for each boid in the vector list
+  BOOST_FOREACH(Boid &s, m_boidArray)
   {
     p=s.getPos();
-    //Now we need to check the Sphere agains all 6 planes of the BBOx
-    //If a collision is found we change the dir of the Sphere then Break
+    //Now we need to check the Boid agains all 6 planes of the BBOx
+    //If a collision is found we change the dir of the Boid then Break
     for(int i=0; i<6; ++i)
     {
       //to calculate the distance we take the dotporduct of the Plane Normal
       //with the new point P
       D=m_bbox->getNormalArray()[i].dot(p);
-      //Now Add the Radius of the sphere to the offsett
+      //Now Add the Radius of the boid to the offsett
       D+=s.getRadius();
       // If this is greater or equal to the BBox extent /2 then there is a collision
-      //So we calculate the Spheres new direction
+      //So we calculate the Boids new direction
       if(D >=ext[i])
       {
         //We use the same calculation as in raytracing to determine the
@@ -418,12 +416,12 @@ void NGLScene::BBoxCollision()
     }//end of for
 }
 
-
-void  NGLScene::checkSphereCollisions()
+//----------------------------------------------------------------------------------------------------------------------
+void  NGLScene::checkBoidCollisions()
 {
   bool collide;
 
-  unsigned int size=m_sphereArray.size();
+  unsigned int size=m_boidArray.size();
 
 	for(unsigned int ToCheck=0; ToCheck<size; ++ToCheck)
 	{
@@ -435,52 +433,53 @@ void  NGLScene::checkSphereCollisions()
       else
       {
         //cout <<"doing check"<<endl;
-        collide =sphereSphereCollision(m_sphereArray[Current].getPos(),m_sphereArray[Current].getRadius(),
-                                       m_sphereArray[ToCheck].getPos(),m_sphereArray[ToCheck].getRadius()
+        collide =boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
+                                       m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
                                       );
         if(collide== true)
         {
-          m_sphereArray[Current].reverse();
-          m_sphereArray[Current].setHit();
+          m_boidArray[Current].reverse();
+          m_boidArray[Current].setHit();
         }
       }
     }
   }
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------
 void  NGLScene::checkCollisions()
 {
 
-    if(m_checkSphereSphere == true)
+    if(m_checkBoidBoid == true)
 	{
-		checkSphereCollisions();
+        checkBoidCollisions();
 	}
 	BBoxCollision();
-
 }
 
-void NGLScene::removeSphere()
+//----------------------------------------------------------------------------------------------------------------------
+void NGLScene::removeBoid()
 {
-  std::vector<Sphere>::iterator end=m_sphereArray.end();
-  if(--m_numSpheres==0)
+  std::vector<Boid>::iterator end=m_boidArray.end();
+  if(--m_numBoids==0)
   {
-    m_numSpheres=1;
+    m_numBoids=1;
   }
   else
   {
-    m_sphereArray.erase(end-1,end);
+    m_boidArray.erase(end-1,end);
   }
 }
 
-void NGLScene::addSphere()
+//----------------------------------------------------------------------------------------------------------------------
+void NGLScene::addBoid()
 {
   ngl::Random *rng=ngl::Random::instance();
   ngl::Vec3 dir;
   dir=rng->getRandomVec3();
-  // add the spheres to the end of the particle list
-  m_sphereArray.push_back(Sphere(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
-  ++m_numSpheres;
+  // add the boids to the end of the particle list
+  m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
+  ++m_numBoids;
 }
 
 

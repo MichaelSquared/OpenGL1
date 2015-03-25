@@ -30,16 +30,16 @@ int main(int argc, char **argv)
   // now set the depth buffer to 24 bits
   format.setDepthBufferSize(24);
   // now we are going to create our scene window
-  int numSpheres;
+  int numBoids;
   if(argc ==1)
   {
-    numSpheres=50;
+    numBoids=50;
   }
   else
   {
-    numSpheres=atoi(argv[1]);
+    numBoids=atoi(argv[1]);
   }
-  NGLScene window(numSpheres);
+  NGLScene window(numBoids);
   // and set the OpenGL format
   window.setFormat(format);
   // we can now query the version to see if it worked

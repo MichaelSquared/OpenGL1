@@ -1,16 +1,16 @@
-#include "Sphere.h"
+#include "Boid.h"
 #include <ngl/VAOPrimitives.h>
 #include <ngl/Random.h>
 #include <QDebug>
 
-Sphere::Sphere( ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
+Boid::Boid( ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
 {
   // set values from params
   //m_pos=_pos;
   m_pos=0,0,0;
   m_dir=_dir;
   m_radius=_rad;
-  m_hit=false;
+  //m_hit=false;
 
   ngl::Random* rand = ngl::Random::instance();
   m_boidColour = rand->getRandomColour();
@@ -21,12 +21,12 @@ Sphere::Sphere( ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
   m_discoStyle = (bool)(fmod(rand->randomPositiveNumber(), 1) > probabilityOfDisco);
 }
 
-Sphere::Sphere()
+/*Boid::Boid()
 {
   m_hit=false;
-}
+}*/
 
-void Sphere::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam  ) const
+void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam  ) const
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
@@ -42,7 +42,7 @@ void Sphere::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_g
 }
 
 
-void Sphere::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  ngl::Camera *_cam )const
+void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  ngl::Camera *_cam )const
 {
 
   // draw wireframe if hit
@@ -55,7 +55,7 @@ void Sphere::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat, 
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
   }
 
-  ngl::Vec3 verts[]=
+  static const ngl::Vec3 verts[]=
   {
     ngl::Vec3(0,1,1),
     ngl::Vec3(0,0,-1),
@@ -86,35 +86,33 @@ void Sphere::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat, 
 
    m_vao->setNumIndices(sizeof(verts)/sizeof(ngl::Vec3));
 
- // now unbind
-  //m_vao->unbind();
-
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   shader->use(_shaderName);
 
   ngl::Transformation t;
 
   t.setPosition(m_pos);
-  t.setScale(m_radius,m_radius,m_radius);
+  t.setScale(m_radius, m_radius, m_radius);
   loadMatricesToShader(t,_globalMat,_cam);
 
   //m_vao->bind();
   m_vao->draw();
   m_vao->unbind();
 
+  delete m_vao;
+
 glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 }
 
 
-
-void Sphere :: set(ngl::Vec3 _pos, ngl::Vec3 _dir, GLfloat _rad)
+void Boid::set(ngl::Vec3 _pos, ngl::Vec3 _dir, GLfloat _rad)
 {
   m_pos=_pos;
   m_dir=_dir;
   m_radius=_rad;
 }
 
-void Sphere::move()
+void Boid::move()
 {
   // store the last position
   m_lastPos=m_pos;
@@ -125,9 +123,9 @@ void Sphere::move()
   m_hit=false;
 }
 
+/****************************************************************************/
 
-
-void Sphere::seek(ngl::Vec3 target)
+void Boid::seek(ngl::Vec3 target)
 {
     ngl::Vec3 desired = target - m_pos;
     desired.normalize();
@@ -138,7 +136,7 @@ void Sphere::seek(ngl::Vec3 target)
 
 }
 
-
+/****************************************************************************/
 
 
 
