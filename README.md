@@ -1,3 +1,3 @@
-#BoundingBox
+#Flocking System
 
-Shows how to do sphere -> bounding box collisions as well as sphere->sphere
+Simple flocking system with C++ and NGL
