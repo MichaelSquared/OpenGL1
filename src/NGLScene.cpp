@@ -249,7 +249,7 @@ void NGLScene::update()
 	{
 		s.move();
 	}
-    //checkCollisions();
+    checkCollisions();
 }
 
 
@@ -355,8 +355,8 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   case Qt::Key_S : m_checkSphereSphere^=true; break;
   case Qt::Key_R : resetSpheres(); break;
 
-  //case Qt::Key_Minus : removeSphere(); break;
-  //case Qt::Key_Plus : addSphere(); break;
+  case Qt::Key_Minus : removeSphere(); break;
+  case Qt::Key_Plus : addSphere(); break;
 
   default : break;
   }
@@ -377,38 +377,6 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 		renderNow();
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
