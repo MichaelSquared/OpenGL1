@@ -2,7 +2,7 @@
 #define OPENGLWINDOW_H__
 #include <QtGui/QWindow>
 
-//----------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
 /// @class OpenGLWindow
 /// @file OpenGLWindow.h
 /// @brief this is the base class for all our OpenGL widgets, inherit from this class and overide the methods for
@@ -12,7 +12,7 @@
 /// @date 10/9/13
 /// Revision History :
 /// This is an initial version used for the new NGL6 / Qt 5 demos
-//----------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
 
 // pre declare some classes we need
 class QPainter;

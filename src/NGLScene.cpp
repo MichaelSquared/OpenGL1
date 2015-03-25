@@ -22,7 +22,6 @@ const static float INCREMENT=0.01;
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
 const static float ZOOM=0.1;
-
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief extents of the bbox
 //----------------------------------------------------------------------------------------------------------------------
@@ -35,7 +34,7 @@ NGLScene::NGLScene(int _numSpheres,QWindow *_parent) : OpenGLWindow(_parent)
   // mouse rotation values set to 0
   m_spinXFace=0;
   m_spinYFace=0;
-  setTitle("Sphere Bounding Box Collisions");
+  setTitle("Flocking System");
   m_animate=true;
   m_checkSphereSphere=false;
   // create vectors for the position and direction
@@ -115,59 +114,21 @@ void NGLScene::initialize()
 
    (*shader)["nglColourShader"]->use();
    shader->setShaderParam4f("Colour",1,1,1,1);
-
+   //void draw();
    glEnable(GL_DEPTH_TEST); // for removal of hidden surfaces
 
-  ngl::VAOPrimitives *prim =  ngl::VAOPrimitives::instance();
-  prim->createSphere("sphere",1.0,40);
- // create our Bounding Box, needs to be done once we have a gl context as we create VAO for drawing
+  //ngl::VAOPrimitives *prim =  ngl::VAOPrimitives::instance();
+  //prim->createSphere("sphere",1.0,40);
+  //create our Bounding Box, needs to be done once we have a gl context as we create VAO for drawing
   m_bbox = new ngl::BBox(ngl::Vec3(0,0,0),80,80,80);
 
   m_bbox->setDrawMode(GL_LINE);
-  buildVAO();
   // as re-size is not explicitly called we need to do this.
   glViewport(0,0,width(),height());
   m_sphereUpdateTimer=startTimer(40);
 
 }
 
-void NGLScene::buildVAO()
-{
-  ngl::Vec3 verts[]=
-  {
-    ngl::Vec3(0,1,1),
-    ngl::Vec3(0,0,-1),
-    ngl::Vec3(-0.5,0,1),
-    ngl::Vec3(0,1,1),
-    ngl::Vec3(0,0,-1),
-    ngl::Vec3(0.5,0,1),
-    ngl::Vec3(0,1,1),
-    ngl::Vec3(0,0,1.5),
-    ngl::Vec3(-0.5,0,1),
-    ngl::Vec3(0,1,1),
-    ngl::Vec3(0,0,1.5),
-    ngl::Vec3(0.5,0,1)
-
-  };
-  std::cout<<"sizeof(verts) "<<sizeof(verts)<<" sizeof(ngl::Vec3) "<<sizeof(ngl::Vec3)<<"\n";
-  // create a vao as a series of GL_TRIANGLES
-  m_vao= ngl::VertexArrayObject::createVOA(GL_TRIANGLES);
-  m_vao->bind();
-
-   // in this case we are going to set our data as the vertices above
-
-   m_vao->setData(sizeof(verts),verts[0].m_x);
-   // now we set the attribute pointer to be 0 (as this matches vertIn in our shader)
-
-   m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-
-
-   m_vao->setNumIndices(sizeof(verts)/sizeof(ngl::Vec3));
-
- // now unbind
-  m_vao->unbind();
-
-}
 
 void NGLScene::loadMatricesToShader()
 {
@@ -220,18 +181,24 @@ void NGLScene::render()
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   (*shader)["nglColourShader"]->use();
+  shader->setShaderParam4f("Colour",0,0,0,1); // Set shader colour to black
+
   loadMatricesToColourShader();
   m_bbox->draw();
 
-  shader->use("nglDiffuseShader");
+//  shader->use("nglDiffuseShader");
 
-	BOOST_FOREACH(Sphere s, m_sphereArray)
-	{
-		s.draw("nglDiffuseShader",m_mouseGlobalTX,m_cam);
-	}
-    m_vao->bind();
-    m_vao->draw();
-    m_vao->unbind();
+    BOOST_FOREACH(Sphere s, m_sphereArray)
+    {
+        ngl::Random* rand = ngl::Random::instance();
+        ngl::Colour boidColour = s.isDiscoBoid() ? rand->getRandomColour() : s.getBoidColour();
+
+        shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
+        s.draw("nglColourShader",m_mouseGlobalTX,m_cam);
+    }
+//    m_vao->bind();
+//    m_vao->draw();
+//    m_vao->unbind();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
