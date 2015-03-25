@@ -1,2 +1,3 @@
-#Intro to OpenGL
-this is being used to show using SDL and OpenGL
+#BoundingBox
+
+Shows how to do sphere -> bounding box collisions as well as sphere->sphere
