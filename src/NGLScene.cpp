@@ -12,6 +12,7 @@
 #include <ngl/VAOPrimitives.h>
 
 #include <boost/foreach.hpp>
+#include "Boid.h"
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -27,7 +28,7 @@ const static float ZOOM=0.1;
 //----------------------------------------------------------------------------------------------------------------------
 const static int s_extents=20;
 
-NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent)
+NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent), m_flock(_numBoids, s_extents)
 {
   // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
   m_rotate=false;
@@ -38,30 +39,31 @@ NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent)
   m_animate=true;
   m_checkBoidBoid=false;
   // create vectors for the position and direction
-  m_numBoids=_numBoids;
-  resetBoids();
-
+//  m_numBoids=_numBoids;
+  m_flock.resetBoids();
+  m_drawFlockCenter = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void NGLScene::resetBoids()
-{
-    std::vector<Boid>::iterator begin=m_boidArray.begin();
-    std::vector<Boid>::iterator end=m_boidArray.end();
-    m_boidArray.erase(begin,end);
-	ngl::Vec3 pos(0,0,0);
-	ngl::Vec3 dir;
-	ngl::Random *rng=ngl::Random::instance();
-	// loop and create the initial particle list
-    for(int i=0; i<m_numBoids; ++i)
-	{
-		dir=rng->getRandomVec3();
-        // add the boids to the end of the particle list
-        m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
-	}
+//void NGLScene::resetBoids()
+//{
+//    std::vector<Boid>::iterator begin=m_boidArray.begin();
+//    std::vector<Boid>::iterator end=m_boidArray.end();
+//    m_boidArray.erase(begin,end);
+//	ngl::Vec3 pos(0,0,0);
+//	ngl::Vec3 dir;
+//	ngl::Random *rng=ngl::Random::instance();
+//	// loop and create the initial particle list
+//    for(int i=0; i<m_numBoids; ++i)
+//	{
+//		dir=rng->getRandomVec3();
+//        // add the boids to the end of the particle list
+//        m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
+//	}
+//}
 
 //----------------------------------------------------------------------------------------------------------------------
-}
+
 NGLScene::~NGLScene()
 {
   ngl::NGLInit *Init = ngl::NGLInit::instance();
@@ -129,6 +131,9 @@ void NGLScene::initialize()
   glViewport(0,0,width(),height());
   m_boidUpdateTimer=startTimer(40);
 
+  ngl::VAOPrimitives *prim=ngl::VAOPrimitives::instance();
+  prim->createSphere("sphere",2,8);
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -156,7 +161,7 @@ void NGLScene::loadMatricesToColourShader()
   ngl::Mat4 MV;
   ngl::Mat4 MVP;
 
-  MV= m_mouseGlobalTX*m_cam->getViewMatrix() ;
+  MV= m_transform*m_mouseGlobalTX*m_cam->getViewMatrix() ;
   MVP=MV*m_cam->getProjectionMatrix();
   shader->setShaderParamFromMat4("MVP",MVP);
 
@@ -186,19 +191,33 @@ void NGLScene::render()
   (*shader)["nglColourShader"]->use();
   shader->setShaderParam4f("Colour",0,0,0,1); // Set shader colour to black
 
+  m_transform.identity();
   loadMatricesToColourShader();
   m_bbox->draw();
 
+  if(m_drawFlockCenter)
+  {
+      ngl::Vec3 avg = m_flock.getAveragePos();
+      shader->setShaderParam4f("Colour",1,0.5,0,1); // Set shader colour to black
+
+      m_transform.translate(avg.m_x, avg.m_y, avg.m_z);
+      loadMatricesToColourShader();
+      ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
+      prim->draw("sphere");
+  }
+
 //  shader->use("nglDiffuseShader");
 
-    BOOST_FOREACH(Boid s, m_boidArray)
-    {
-        ngl::Random* rand = ngl::Random::instance();
-        ngl::Colour boidColour = s.isDiscoBoid() ? rand->getRandomColour() : s.getBoidColour();
+//    BOOST_FOREACH(Boid s, m_boidArray)
+//    {
+//        ngl::Random* rand = ngl::Random::instance();
+//        ngl::Colour boidColour = s.isDiscoBoid() ? rand->getRandomColour() : s.getBoidColour();
 
-        shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
-        s.draw("nglColourShader",m_mouseGlobalTX,m_cam);
-    }
+//        shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
+//        s.draw("nglColourShader",m_mouseGlobalTX,m_cam);
+//    }
+
+  m_flock.draw(m_mouseGlobalTX, m_cam, shader);
 //    m_vao->bind();
 //    m_vao->draw();
 //    m_vao->unbind();
@@ -209,22 +228,21 @@ void NGLScene::update()
 {
 
 /***********************************************************************/
-    //velocity += acceleration;
-    //velocity.limit(maxSpeed);
-    //location += velocity;
-    //accelaration *= 0;
+    //m_velocity += m_acceleration;
+    //m_velocity.limit(maxSpeed);
+    //m_pos += m_velocity;
+    //m_accelaration *= 0;
 /***********************************************************************/
 
-    BOOST_FOREACH(Boid &s, m_boidArray)
-	{
-		s.move();
-	}
-    checkCollisions();
+    m_flock.update(m_bbox, m_checkBoidBoid);
+
+    //checkCollisions();
 }
 
-
 //----------------------------------------------------------------------------------------------------------------------
-void NGLScene::mouseMoveEvent (QMouseEvent * _event)
+//------------------------------------MOUSE_EVENTS----------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+void NGLScene::mouseMoveEvent(QMouseEvent * _event)
 {
   // note the method buttons() is the button state when event was called
   // this is different from button() which is used to check which button was
@@ -253,7 +271,6 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
 
    }
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::mousePressEvent ( QMouseEvent * _event)
@@ -323,7 +340,7 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   case Qt::Key_N : showNormal(); break;
   case  Qt::Key_Space : m_animate^=true; break;
   case Qt::Key_S : m_checkBoidBoid^=true; break;
-  case Qt::Key_R : resetBoids(); break;
+  case Qt::Key_R : m_flock.resetBoids(); break;
 
   case Qt::Key_Minus : removeBoid(); break;
   case Qt::Key_Plus : addBoid(); break;
@@ -348,7 +365,8 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 		renderNow();
 	}
 }
-
+//----------------------------------------------------------------------------------------------------------------------
+//-------------------------------COLLISIONS-----------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 bool NGLScene::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
 {
@@ -375,111 +393,113 @@ bool NGLScene::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void NGLScene::BBoxCollision()
-{
-  //create an array of the extents of the bounding box
-  float ext[6];
-  ext[0]=ext[1]=(m_bbox->height()/2.0f);
-  ext[2]=ext[3]=(m_bbox->width()/2.0f);
-  ext[4]=ext[5]=(m_bbox->depth()/2.0f);
-  // Dot product needs a Vector so we convert The Point Temp into a Vector so we can
-  // do a dot product on it
-  ngl::Vec3 p;
-  // D is the distance of the Agent from the Plane. If it is less than ext[i] then there is
-  // no collision
-  GLfloat D;
-  // Loop for each boid in the vector list
-  BOOST_FOREACH(Boid &s, m_boidArray)
-  {
-    p=s.getPos();
-    //Now we need to check the Boid agains all 6 planes of the BBOx
-    //If a collision is found we change the dir of the Boid then Break
-    for(int i=0; i<6; ++i)
-    {
-      //to calculate the distance we take the dotporduct of the Plane Normal
-      //with the new point P
-      D=m_bbox->getNormalArray()[i].dot(p);
-      //Now Add the Radius of the boid to the offsett
-      D+=s.getRadius();
-      // If this is greater or equal to the BBox extent /2 then there is a collision
-      //So we calculate the Boids new direction
-      if(D >=ext[i])
-      {
-        //We use the same calculation as in raytracing to determine the
-        // the new direction
-        GLfloat x= 2*( s.getDirection().dot((m_bbox->getNormalArray()[i])));
-        ngl::Vec3 d =m_bbox->getNormalArray()[i]*x;
-        s.setDirection(s.getDirection()-d);
-        s.setHit();
-      }//end of hit test
-     }//end of each face test
-    }//end of for
-}
+//void NGLScene::BBoxCollision()
+//{
+//  //create an array of the extents of the bounding box
+//  float ext[6];
+//  ext[0]=ext[1]=(m_bbox->height()/2.0f);
+//  ext[2]=ext[3]=(m_bbox->width()/2.0f);
+//  ext[4]=ext[5]=(m_bbox->depth()/2.0f);
+//  // Dot product needs a Vector so we convert The Point Temp into a Vector so we can
+//  // do a dot product on it
+//  ngl::Vec3 p;
+//  // D is the distance of the Agent from the Plane. If it is less than ext[i] then there is
+//  // no collision
+//  GLfloat D;
+//  // Loop for each boid in the vector list
+//  BOOST_FOREACH(Boid &s, m_boidArray)
+//  {
+//    p=s.getPos();
+//    //Now we need to check the Boid agains all 6 planes of the BBOx
+//    //If a collision is found we change the dir of the Boid then Break
+//    for(int i=0; i<6; ++i)
+//    {
+//      //to calculate the distance we take the dotporduct of the Plane Normal
+//      //with the new point P
+//      D=m_bbox->getNormalArray()[i].dot(p);
+//      //Now Add the Radius of the boid to the offsett
+//      D+=s.getRadius();
+//      // If this is greater or equal to the BBox extent /2 then there is a collision
+//      //So we calculate the Boids new direction
+//      if(D >=ext[i])
+//      {
+//        //We use the same calculation as in raytracing to determine the
+//        // the new direction
+//        GLfloat x= 2*( s.getDirection().dot((m_bbox->getNormalArray()[i])));
+//        ngl::Vec3 d =m_bbox->getNormalArray()[i]*x;
+//        s.setDirection(s.getDirection()-d);
+//        s.setHit();
+//      }//end of hit test
+//     }//end of each face test
+//    }//end of for
+//}
 
 //----------------------------------------------------------------------------------------------------------------------
-void  NGLScene::checkBoidCollisions()
-{
-  bool collide;
+//void  NGLScene::checkBoidCollisions()
+//{
+//  bool collide;
 
-  unsigned int size=m_boidArray.size();
+//  unsigned int size=m_boidArray.size();
 
-	for(unsigned int ToCheck=0; ToCheck<size; ++ToCheck)
-	{
-		for(unsigned int Current=0; Current<size; ++Current)
-		{
-			// don't check against self
-			if(ToCheck == Current)  continue;
+//	for(unsigned int ToCheck=0; ToCheck<size; ++ToCheck)
+//	{
+//		for(unsigned int Current=0; Current<size; ++Current)
+//		{
+//			// don't check against self
+//			if(ToCheck == Current)  continue;
 
-      else
-      {
-        //cout <<"doing check"<<endl;
-        collide =boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
-                                       m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
-                                      );
-        if(collide== true)
-        {
-          m_boidArray[Current].reverse();
-          m_boidArray[Current].setHit();
-        }
-      }
-    }
-  }
-}
+//      else
+//      {
+//        //cout <<"doing check"<<endl;
+//        collide =boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
+//                                       m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
+//                                      );
+//        if(collide== true)
+//        {
+//          m_boidArray[Current].reverse();
+//          m_boidArray[Current].setHit();
+//        }
+//      }
+//    }
+//  }
+//}
 
 //----------------------------------------------------------------------------------------------------------------------
-void  NGLScene::checkCollisions()
-{
+//void  NGLScene::checkCollisions()
+//{
 
-    if(m_checkBoidBoid == true)
-	{
-        checkBoidCollisions();
-	}
-	BBoxCollision();
-}
+//    if(m_checkBoidBoid == true)
+//	{
+//        checkBoidCollisions();
+//	}
+//	BBoxCollision();
+//}
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::removeBoid()
 {
-  std::vector<Boid>::iterator end=m_boidArray.end();
-  if(--m_numBoids==0)
-  {
-    m_numBoids=1;
-  }
-  else
-  {
-    m_boidArray.erase(end-1,end);
-  }
+//  std::vector<Boid>::iterator end=m_boidArray.end();
+//  if(--m_numBoids==0)
+//  {
+//    m_numBoids=1;
+//  }
+//  else
+//  {
+//    m_boidArray.erase(end-1,end);
+//  }
+    m_flock.removeBoid();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::addBoid()
 {
-  ngl::Random *rng=ngl::Random::instance();
-  ngl::Vec3 dir;
-  dir=rng->getRandomVec3();
-  // add the boids to the end of the particle list
-  m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
-  ++m_numBoids;
+//  ngl::Random *rng=ngl::Random::instance();
+//  ngl::Vec3 dir;
+//  dir=rng->getRandomVec3();
+//  // add the boids to the end of the particle list
+//  m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
+//  ++m_numBoids;
+    m_flock.addBoid();
 }
 
 

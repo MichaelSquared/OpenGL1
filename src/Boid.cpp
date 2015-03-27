@@ -5,31 +5,38 @@
 
 Boid::Boid( ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
 {
-  // set values from params
+  //--set values from params--//
   //m_pos=_pos;
   m_pos=0,0,0;
   m_dir=_dir;
   m_radius=_rad;
-  //m_hit=false;
+  m_hit=false;
 
-  ngl::Random* rand = ngl::Random::instance();
-  m_boidColour = rand->getRandomColour();
-
-  const float probabilityOfDisco = 1.0;
-
-  // Randomly decide if this boid is a disco boid or not
+  //---------------------------------Colour--------------------------------------//
+  ngl::Random *rand = ngl::Random::instance();     //Created a pointer
+  m_boidColour = rand->getRandomColour();          //Pointing at ->getRandomColour()
+  const float probabilityOfDisco = 1.0;            //Value/number of disco boids
+  //--Randomly decide if this boid is a disco boid or not--//
   m_discoStyle = (bool)(fmod(rand->randomPositiveNumber(), 1) > probabilityOfDisco);
 }
 
-/*Boid::Boid()
+//default ctor
+Boid::Boid()
 {
   m_hit=false;
-}*/
+}
+
+Boid::Boid(float m_x, float m_y, float m_z)
+{
+    //m_acceleration = new ngl::Vec3(0.0f,0.0f,0.0f);
+    //m_velocity = new ngl::Vec3(0.0f,0.0f,0.0f);
+    //m_pos = new ngl::Vec3(m_x, m_y, m_z);
+
+}
 
 void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam  ) const
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
   ngl::Mat4 MV;
   ngl::Mat4 MVP;
   ngl::Mat3 normalMatrix;
@@ -44,8 +51,9 @@ void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_glo
 
 void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  ngl::Camera *_cam )const
 {
-
-  // draw wireframe if hit
+//--------------------------------------------//
+//-----------Draw wireframe if hit------------//
+//--------------------------------------------//
   if(m_hit)
   {
     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
@@ -54,7 +62,12 @@ void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  n
   {
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
   }
+//----------------------------------------------
 
+
+//--------------------------------------------//
+//-----------------Draw Boid------------------//
+//--------------------------------------------//
   static const ngl::Vec3 verts[]=
   {
     ngl::Vec3(0,1,1),
@@ -71,18 +84,15 @@ void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  n
     ngl::Vec3(0.5,0,1)
 
   };
-  //std::cout<<"sizeof(verts) "<<sizeof(verts)<<" sizeof(ngl::Vec3) "<<sizeof(ngl::Vec3)<<"\n";
   // create a vao as a series of GL_TRIANGLES
-   ngl::VertexArrayObject *m_vao= ngl::VertexArrayObject::createVOA(GL_TRIANGLES);
-  m_vao->bind();
+   ngl::VertexArrayObject *m_vao = ngl::VertexArrayObject::createVOA(GL_TRIANGLES);
+   m_vao->bind();
 
    // in this case we are going to set our data as the vertices above
-
    m_vao->setData(sizeof(verts),verts[0].m_x);
+
    // now we set the attribute pointer to be 0 (as this matches vertIn in our shader)
-
    m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-
 
    m_vao->setNumIndices(sizeof(verts)/sizeof(ngl::Vec3));
 
@@ -101,8 +111,8 @@ void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  n
 
   delete m_vao;
 
-glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 }
+
 
 
 void Boid::set(ngl::Vec3 _pos, ngl::Vec3 _dir, GLfloat _rad)
@@ -128,18 +138,31 @@ void Boid::move()
 void Boid::seek(ngl::Vec3 target)
 {
     ngl::Vec3 desired = target - m_pos;
+    //desired *= 0.05;
     desired.normalize();
-    //desired*maxspeed);
-    //ngl::Vec3 steer = desired - velocity;
+    desired *= maxSpeed;
+    ngl::Vec3 steer = desired - m_velocity;
     //steer.limit(maxForce);
     //applyForce(steer);
 
 }
-
+/*
+void Boid::display()
+{
+    float theta = velocity.heading() + PI/2;
+    fill(175);
+    stroke(0);
+    pushMatrix();
+    translate(location.x,location.y);
+    rotate(theta);
+    beginShape();
+    vertex(0, -_rad*2);
+    vertex(-r, _rad*2);
+    vertex(r, _rad*2);
+    endShape(CLOSE);
+    popMatrix();
+}*/
 /****************************************************************************/
-
-
-
 
 
 

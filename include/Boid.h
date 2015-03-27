@@ -13,31 +13,40 @@ class Boid
 {
 public :
 
-/************************************************************************/
-    void seek(ngl::Vec3 target);
-    void applyForce(ngl::Vec3 force);
-
-/************************************************************************/
-
-
 	/// @brief ctor
     /// @param pos the position of the boid
     /// @param rad the radius of the boid
-    Boid(ngl::Vec3 _pos,  ngl::Vec3 _dir,	GLfloat _rad);
-    Boid();
-    /// draw method
+    Boid(ngl::Vec3 _pos,  ngl::Vec3 _dir, GLfloat _rad); //ctor
+    //, ngl::Vec3 _velocity, ngl::Vec3 _acceleration
+
+    Boid();  //default ctor
+
+    Boid(float m_x, float m_y, float m_z);
+
+    //---------------------Draw_Method--------------------//
     void draw(const std::string &_shaderName, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const ;
     void loadMatricesToShader(ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const;
-    //inline void reverse(){m_dir=m_dir*-1.0;}
-    //inline void setHit(){m_hit=true;}
-    //inline void setNotHit(){m_hit=false;}
-    //inline bool isHit()const {return m_hit;}
+    inline void reverse(){m_dir=m_dir*-1.0;}
+
+    //---------------------Wireframe----------------------//
+    inline void setHit(){m_hit=true;}
+    inline void setNotHit(){m_hit=false;}
+    inline bool isHit()const {return m_hit;}
+
+    //---------------------Position-----------------------//
     inline ngl::Vec3 getPos() const {return m_pos;}
     inline ngl::Vec3 getNextPos() const {return m_nextPos;}
+
+    //----------------------Radius------------------------//
 	inline GLfloat getRadius() const {return m_radius;}
+
+    //---------------------Direction----------------------//
     inline void setDirection(ngl::Vec3 _d){m_dir=_d;}
     inline ngl::Vec3 getDirection() const { return m_dir;}
+
+    //-----------------------Move-------------------------//
 	void move();
+
     /// set the boid values
 	/// @param[in] _pos the position to set
     /// @param[in] _dir the direction of the boid
@@ -55,25 +64,43 @@ public :
         return m_discoStyle;
     }
 
+
+/************************************************************************/
+    void seek(ngl::Vec3 target);
+    void applyForce(ngl::Vec3 force)
+    {
+        m_acceleration += force;
+    };
+    void display();
+    void arrive(ngl::Vec3 target);
+    float mag()
+    {
+      //return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
+    }
+    void setup();
+
+/************************************************************************/
+
+
 private :
 
 
 /*******************************************************************************************/
     /// the position of the Boid
-  ngl::Vec3 m_pos;
+    ngl::Vec3 m_pos;
     /// the velocity of the Boid
-  ngl::Vec3 m_velocity;
+    ngl::Vec3 m_velocity;
     /// the acceleration of the Boid
-  ngl::Vec3 m_acceleration;
-  float r;
+    ngl::Vec3 m_acceleration;
+    float r;
     ///Maximum speed
-  float maxSpeed;
+    float maxSpeed;
     ///Maximum force
-  float maxForce;
+    float maxForce;
 
-  ngl::Colour m_boidColour;
-
-  bool m_discoStyle;
+    ///Colour
+    ngl::Colour m_boidColour;
+    bool m_discoStyle;
 /*******************************************************************************************/
 
 
@@ -82,11 +109,11 @@ private :
     /*! flag to indicate if the boid has been hit by ray */
     bool m_hit;
     // the direction of the boid
-  ngl::Vec3 m_dir;
+    ngl::Vec3 m_dir;
     // the last position of the boid
-  ngl::Vec3 m_lastPos;
+    ngl::Vec3 m_lastPos;
     // the next position of the boid
-  ngl::Vec3 m_nextPos;
+    ngl::Vec3 m_nextPos;
 
 
 };
