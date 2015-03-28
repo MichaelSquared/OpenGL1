@@ -45,3 +45,6 @@ private:
 
 
 #endif // FLOCK_H
+
+
+//appent to a list = .push_back something
