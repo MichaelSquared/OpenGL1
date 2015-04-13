@@ -17,11 +17,9 @@ public :
     /// @param pos the position of the boid
     /// @param rad the radius of the boid
     Boid(ngl::Vec3 _pos,  ngl::Vec3 _dir, GLfloat _rad); //ctor
-    //, ngl::Vec3 _velocity, ngl::Vec3 _acceleration
+    /// the position of the Boid
 
     Boid();  //default ctor
-
-    Boid(float m_x, float m_y, float m_z);
 
     //---------------------Draw_Method--------------------//
     void draw(const std::string &_shaderName, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const ;
@@ -64,13 +62,9 @@ public :
         return m_discoStyle;
     }
 
-
 /************************************************************************/
     void seek(ngl::Vec3 target);
-    void applyForce(ngl::Vec3 force)
-    {
-        m_acceleration += force;
-    };
+    void applyForce(ngl::Vec3 force);
     void display();
     void arrive(ngl::Vec3 target);
     float mag()
@@ -78,31 +72,23 @@ public :
       //return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
     }
     void setup();
-
 /************************************************************************/
 
-
 private :
-
 
 /*******************************************************************************************/
     /// the position of the Boid
     ngl::Vec3 m_pos;
-    /// the velocity of the Boid
-    ngl::Vec3 m_velocity;
     /// the acceleration of the Boid
     ngl::Vec3 m_acceleration;
-    float r;
-    ///Maximum speed
-    float maxSpeed;
-    ///Maximum force
-    float maxForce;
-
-    ///Colour
+    /// Maximum speed
+    float m_maxSpeed;
+    /// Maximum force
+    float m_maxForce;
+    /// Colour
     ngl::Colour m_boidColour;
     bool m_discoStyle;
 /*******************************************************************************************/
-
 
     /*! the radius of the boid */
 	GLfloat m_radius;
@@ -115,9 +101,7 @@ private :
     // the next position of the boid
     ngl::Vec3 m_nextPos;
 
-
 };
-
 
 
 

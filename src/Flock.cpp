@@ -1,23 +1,12 @@
 #include "Flock.h"
-#include "NGLScene.h"
+#include "Boid.h"
 
 #include <ngl/ShaderLib.h>
 #include "ngl/Random.h"
 #include <ngl/BBox.h>
-
 #include <boost/foreach.hpp>
+#include <iostream>
 
-
-//void Flock::setup()
-//{
-//    int boids = new std::vector <Boid>();
-//    for (int i=0; i<numBoids; i++)
-//    {
-//        boids += new Vehicle;
-//    }
-
-
-//}
 
 void Flock::resetBoids()
 {
@@ -40,6 +29,48 @@ void Flock::resetBoids()
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+void separate(std::vector <Boid> m_boidArray, ngl::Vec3 _pos1, ngl::Vec3 _pos2, GLfloat _radius1, GLfloat _radius2)
+{
+    //Inside this function, we’re going to loop through all of the vehicles and see if any are too close.
+    float desiredSeparation = 20;       //how close is too close
+
+    //the relative position of the boids
+    ngl::Vec3 relPos;
+    //min an max distances of the boids
+    GLfloat minDist;
+    GLfloat dist;
+    GLfloat len;
+    // and the distance
+    len=relPos.length();
+
+    minDist =_radius1 + _radius2;
+
+    ngl::Vec3 sum;    //start with an empty vector
+    int count = 0;
+
+    BOOST_FOREACH(Boid s, m_boidArray)
+    {
+        dist=len*len;
+
+        if ((dist > 0) && (dist < desiredSeparation))
+        {
+            relPos =_pos1 - _pos2;   //vector pointing away from the other boids
+            relPos.normalize();
+            sum += relPos;  //add all the vectors together/increament the count
+            count++;
+        }
+
+    }
+    if(count > 0)
+    {
+        sum /= count;
+    }
+}
+
+
+
+//----------------------------------------------------------------------------------------------------------------------
 void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader)
 {
     BOOST_FOREACH(Boid s, m_boidArray)
@@ -49,8 +80,12 @@ void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* sh
 
         shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
         s.draw("nglColourShader",_mouseGlobalTX, _cam);
+
+        //s.separate(m_boidArray)
+
     }
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid)
 {
@@ -61,6 +96,7 @@ void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid)
 
     checkCollisions(_bbox, _checkBoidBoid);
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 void Flock::checkCollisions(ngl::BBox *_bbox, bool _checkBoidBoid)
 {
@@ -71,6 +107,7 @@ void Flock::checkCollisions(ngl::BBox *_bbox, bool _checkBoidBoid)
     }
     BBoxCollision(_bbox);
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 void Flock::checkBoidCollisions()
 {
@@ -91,7 +128,7 @@ void Flock::checkBoidCollisions()
         collide = boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
                                        m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
                                       );
-        if(collide== true)
+        if(collide == true)
         {
           m_boidArray[Current].reverse();
           m_boidArray[Current].setHit();
@@ -100,6 +137,7 @@ void Flock::checkBoidCollisions()
     }
   }
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 void Flock::BBoxCollision(ngl::BBox *_bbox)
 {
@@ -131,7 +169,7 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
       //So we calculate the Boids new direction
       if(D >=ext[i])
       {
-        //We use the same calculation as in raytracing to determine the
+        //We use the same calculation as in raytracing to determine
         // the new direction
         GLfloat x= 2*( s.getDirection().dot((_bbox->getNormalArray()[i])));
         ngl::Vec3 d =_bbox->getNormalArray()[i]*x;
@@ -141,6 +179,7 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
      }//end of each face test
     }//end of for
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 bool Flock::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
 {
@@ -165,6 +204,7 @@ bool Flock::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos
     return false;
   }
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 void Flock::removeBoid()
 {
@@ -178,8 +218,8 @@ void Flock::removeBoid()
     m_boidArray.erase(end-1,end);
   }
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void Flock::addBoid()
 {
   ngl::Random *rng=ngl::Random::instance();
@@ -189,10 +229,10 @@ void Flock::addBoid()
   m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
   ++m_numBoids;
 }
+//----------------------------------------------------------------------------------------------------------------------
 
 ngl::Vec3 Flock::getAveragePos()
 {
-    ngl::Vec3 averagePosition;
     for(unsigned int i = 0; i < m_boidArray.size(); i++)
     {
         averagePosition += m_boidArray[i].getPos();
@@ -201,19 +241,31 @@ ngl::Vec3 Flock::getAveragePos()
     averagePosition = averagePosition / m_boidArray.size();
     return averagePosition;
 }
+//----------------------------------------------------------------------------------------------------------------------
+
+ngl::Vec3 Flock::getCurrentToAveragePos()
+{
+    for(unsigned int i = 0; i < m_boidArray.size(); i++)
+    {
+        averagePosition += m_boidArray[i].getPos();
+        currentToAveragePosition = averagePosition - m_boidArray[i].getPos();
+    }
+
+    return currentToAveragePosition;
+}
 
 
-//void Boid::setup()
-//{
-//    int boids = new std::vector <Boid>;
-//    for (int i = 0; i < 100; i++)
-//    {
-//        boids += new Boid;
-//    }
-//}
+//----------------------------------------------------------------------------------------------------------------------
 
-//for (Boid b : boids)
-//{
-//    b.update();
-//}
-//b.seperate();
+void Boid::move()
+{
+    // store the last position
+  m_lastPos=m_pos;
+    // update the current position
+  m_pos+=m_dir;
+    // get the next position
+  m_nextPos=m_pos+m_dir;
+  m_hit=false;
+
+}
+

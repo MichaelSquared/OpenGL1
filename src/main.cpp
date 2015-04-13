@@ -31,9 +31,9 @@ int main(int argc, char **argv)
   format.setDepthBufferSize(24);
   // now we are going to create our scene window
   int numBoids;
-  if(argc ==1)
+  if(argc == 1)
   {
-    numBoids=50;
+    numBoids=100;
   }
   else
   {
@@ -51,6 +51,32 @@ int main(int argc, char **argv)
 
   return app.exec();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

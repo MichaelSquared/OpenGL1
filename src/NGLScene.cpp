@@ -22,7 +22,7 @@ const static float INCREMENT=0.01;
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
-const static float ZOOM=0.1;
+const static float ZOOM=2;
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief extents of the bbox
 //----------------------------------------------------------------------------------------------------------------------
@@ -69,69 +69,36 @@ void NGLScene::resizeEvent(QResizeEvent *_event )
 
 void NGLScene::initialize()
 {
-  // we must call this first before any other GL commands to load and link the
-  // gl commands from the lib, if this is not done program will crash
-  ngl::NGLInit::instance();
+    // we must call this first before any other GL commands to load and link the
+    // gl commands from the lib, if this is not done program will crash
+    ngl::NGLInit::instance();
 
-  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
-  // enable depth testing for drawing
-  glEnable(GL_DEPTH_TEST);
-  // enable multisampling for smoother drawing
-  glEnable(GL_MULTISAMPLE);
-  // Now we will create a basic Camera from the graphics library
-  // This is a static camera so it only needs to be set once
-  // First create Values for the camera position
-  ngl::Vec3 from(0,10,150);
-  ngl::Vec3 to(0,0,0);
-  ngl::Vec3 up(0,1,0);
-  m_cam= new ngl::Camera(from,to,up);
-  // set the shape using FOV 45 Aspect Ratio based on Width and Height
-  // The final two are near and far clipping planes of 0.5 and 10
-  m_cam->setShape(45,(float)720.0/576.0,0.5,150);
-  // now to load the shader and set the values
-  // grab an instance of shader manager
-   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-   (*shader)["nglDiffuseShader"]->use();
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
+    // enable depth testing for drawing
+    glEnable(GL_DEPTH_TEST);
+    // enable multisampling for smoother drawing
+    glEnable(GL_MULTISAMPLE);
+    // Now we will create a basic Camera from the graphics library
+    // This is a static camera so it only needs to be set once
+    // First create Values for the camera position
+    ngl::Vec3 from(0,10,150);
+    ngl::Vec3 to(0,0,0);
+    ngl::Vec3 up(0,1,0);
+    m_cam= new ngl::Camera(from,to,up);
+    // set the shape using FOV 45 Aspect Ratio based on Width and Height
+    // The final two are near and far clipping planes of 0.5 and 10
+    m_cam->setShape(45,(float)720.0/576.0,0.5,150);
+    //create our Bounding Box, needs to be done once we have a gl context as we create VAO for drawing
+    m_bbox = new ngl::BBox(ngl::Vec3(0,0,0),80,80,80);
 
-   shader->setShaderParam4f("Colour",1,1,0,1);
-   shader->setShaderParam3f("lightPos",1,1,1);
-   shader->setShaderParam4f("lightDiffuse",1,1,1,1);
+    m_bbox->setDrawMode(GL_LINE);
+    // as re-size is not explicitly called we need to do this.
+    glViewport(0,0,width(),height());
+    m_boidUpdateTimer=startTimer(40);
 
-   (*shader)["nglColourShader"]->use();
-   shader->setShaderParam4f("Colour",1,1,1,1);
-   //void draw();
-   glEnable(GL_DEPTH_TEST); // for removal of hidden surfaces
+    ngl::VAOPrimitives *prim=ngl::VAOPrimitives::instance();
+    prim->createSphere("sphere",2,8);
 
-  //ngl::VAOPrimitives *prim =  ngl::VAOPrimitives::instance();
-  //prim->createBoid("boid",1.0,40);
-  //create our Bounding Box, needs to be done once we have a gl context as we create VAO for drawing
-  m_bbox = new ngl::BBox(ngl::Vec3(0,0,0),80,80,80);
-
-  m_bbox->setDrawMode(GL_LINE);
-  // as re-size is not explicitly called we need to do this.
-  glViewport(0,0,width(),height());
-  m_boidUpdateTimer=startTimer(40);
-
-  ngl::VAOPrimitives *prim=ngl::VAOPrimitives::instance();
-  prim->createSphere("sphere",2,8);
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void NGLScene::loadMatricesToShader()
-{
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)["nglDiffuseShader"]->use();
-
-  ngl::Mat4 MV;
-  ngl::Mat4 MVP;
-  ngl::Mat3 normalMatrix;
-  MV= m_mouseGlobalTX*m_cam->getViewMatrix() ;
-  MVP=MV*m_cam->getProjectionMatrix() ;
-  normalMatrix=MV;
-  normalMatrix.inverse();
-  shader->setShaderParamFromMat4("MVP",MVP);
-  shader->setShaderParamFromMat3("normalMatrix",normalMatrix);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -151,46 +118,42 @@ void NGLScene::loadMatricesToColourShader()
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::render()
 {
-  // clear the screen and depth buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   // Rotation based on the mouse position for our global
-   // transform
-   ngl::Mat4 rotX;
-   ngl::Mat4 rotY;
-   // create the rotation matrices
-   rotX.rotateX(m_spinXFace);
-   rotY.rotateY(m_spinYFace);
-   // multiply the rotations
-   m_mouseGlobalTX=rotY*rotX;
-   // add the translations
-   m_mouseGlobalTX.m_m[3][0] = m_modelPos.m_x;
-   m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
-   m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
+    // clear the screen and depth buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Rotation based on the mouse position for our global
+    // transform
+    ngl::Mat4 rotX;
+    ngl::Mat4 rotY;
+    // create the rotation matrices
+    rotX.rotateX(m_spinXFace);
+    rotY.rotateY(m_spinYFace);
+    // multiply the rotations
+    m_mouseGlobalTX=rotY*rotX;
+    // add the translations
+    m_mouseGlobalTX.m_m[3][0] = m_modelPos.m_x;
+    m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
+    m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
 
-  // grab an instance of the shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)["nglColourShader"]->use();
-  shader->setShaderParam4f("Colour",0,0,0,1); // Set shader colour to black
+    // grab an instance of the shader manager
+    ngl::ShaderLib *shader=ngl::ShaderLib::instance();
+    (*shader)["nglColourShader"]->use();
+    shader->setShaderParam4f("Colour",0,0,0,1); // Set shader colour to black
 
-  m_transform.identity();
-  loadMatricesToColourShader();
-  m_bbox->draw();
+    m_transform.identity();
+    loadMatricesToColourShader();
+    m_bbox->draw();
 
-  if(m_drawFlockCenter)
-  {
+    if(m_drawFlockCenter)
+    {
       ngl::Vec3 avg = m_flock.getAveragePos();
-      shader->setShaderParam4f("Colour",1,0.5,0,1); // Set shader colour to black
-
+      shader->setShaderParam4f("Colour",1,0.5,0,1); // Set shader colour to orange
       m_transform.translate(avg.m_x, avg.m_y, avg.m_z);
       loadMatricesToColourShader();
       ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
       prim->draw("sphere");
-  }
+    }
 
-  m_flock.draw(m_mouseGlobalTX, m_cam, shader);
-//    m_vao->bind();
-//    m_vao->draw();
-//    m_vao->unbind();
+    m_flock.draw(m_mouseGlobalTX, m_cam, shader);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -205,8 +168,6 @@ void NGLScene::update()
 /***********************************************************************/
 
     m_flock.update(m_bbox, m_checkBoidBoid);
-
-    //checkCollisions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -317,8 +278,6 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
 
   default : break;
   }
-  // finally update the GLWindow and re-draw
-  //if (isExposed())
     renderLater();
 }
 
@@ -327,7 +286,7 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 {
     if(_event->timerId() == m_boidUpdateTimer)
 	{
-		if (m_animate !=true)
+        if (m_animate != true)
 		{
 			return;
 		}
@@ -335,57 +294,16 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 		renderNow();
 	}
 }
-//----------------------------------------------------------------------------------------------------------------------
-//-------------------------------COLLISIONS-----------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-bool NGLScene::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
-{
-  // the relative position of the boids
-  ngl::Vec3 relPos;
-  //min an max distances of the boids
-  GLfloat dist;
-  GLfloat minDist;
-  GLfloat len;
-  relPos =_pos1-_pos2;
-  // and the distance
-  len=relPos.length();
-  dist=len*len;
-  minDist =_radius1+_radius2;
-  // if it is a hit
-  if(dist <=(minDist * minDist))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::removeBoid()
 {
-//  std::vector<Boid>::iterator end=m_boidArray.end();
-//  if(--m_numBoids==0)
-//  {
-//    m_numBoids=1;
-//  }
-//  else
-//  {
-//    m_boidArray.erase(end-1,end);
-//  }
     m_flock.removeBoid();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::addBoid()
 {
-//  ngl::Random *rng=ngl::Random::instance();
-//  ngl::Vec3 dir;
-//  dir=rng->getRandomVec3();
-//  // add the boids to the end of the particle list
-//  m_boidArray.push_back(Boid(rng->getRandomPoint(s_extents,s_extents,s_extents),dir,rng->randomPositiveNumber(2)+0.5));
-//  ++m_numBoids;
     m_flock.addBoid();
 }
 
