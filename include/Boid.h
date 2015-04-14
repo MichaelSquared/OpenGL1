@@ -45,12 +45,17 @@ public :
     //-----------------------Move-------------------------//
 	void move();
 
+    void separate(std::vector <Boid>& _boidArray);
+    ngl::Vec3 align(std::vector <Boid>& _boidArray);
+    ngl::Vec3 cohesion(std::vector <Boid>& _boidArray);
+
     /// set the boid values
 	/// @param[in] _pos the position to set
     /// @param[in] _dir the direction of the boid
     /// @param[in] _rad the radius of the boid
-
     void set(ngl::Vec3 _pos, ngl::Vec3 _dir, GLfloat _rad );
+
+    void setPosition(ngl::Vec3 _pos) { m_pos = _pos; }
 
     inline ngl::Colour getBoidColour()
     {
@@ -65,12 +70,12 @@ public :
 /************************************************************************/
     void seek(ngl::Vec3 target);
     void applyForce(ngl::Vec3 force);
-    void display();
+
+    void update();
     void arrive(ngl::Vec3 target);
-    float mag()
-    {
-      //return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
-    }
+
+    ///void arrive(ngl::Vec3 target);
+
     void setup();
 /************************************************************************/
 

@@ -99,6 +99,44 @@ void NGLScene::initialize()
     ngl::VAOPrimitives *prim=ngl::VAOPrimitives::instance();
     prim->createSphere("sphere",2,8);
 
+    // Initialise gold shader
+    ngl::ShaderLib *shader=ngl::ShaderLib::instance();
+    // we are creating a shader called Phong
+    shader->createShaderProgram("Phong");
+    // now we are going to create empty shaders for Frag and Vert
+    shader->attachShader("PhongVertex",ngl::VERTEX);
+    shader->attachShader("PhongFragment",ngl::FRAGMENT);
+    // attach the source
+    shader->loadShaderSource("PhongVertex","shaders/PhongVertex.glsl");
+    shader->loadShaderSource("PhongFragment","shaders/PhongFragment.glsl");
+    // compile the shaders
+    shader->compileShader("PhongVertex");
+    shader->compileShader("PhongFragment");
+    // add them to the program
+    shader->attachShaderToProgram("Phong","PhongVertex");
+    shader->attachShaderToProgram("Phong","PhongFragment");
+    // now bind the shader attributes for most NGL primitives we use the following
+    // layout attribute 0 is the vertex data (x,y,z)
+    shader->bindAttribute("Phong",0,"inVert");
+    // attribute 1 is the UV data u,v (if present)
+    shader->bindAttribute("Phong",1,"inUV");
+    // attribute 2 are the normals x,y,z
+    shader->bindAttribute("Phong",2,"inNormal");
+
+    // now we have associated this data we can link the shader
+    shader->linkProgramObject("Phong");
+    // and make it active ready to load values
+    (*shader)["Phong"]->use();
+    // the shader will use the currently active material and light0 so set them
+
+    m_light = new ngl::Light(ngl::Vec3(-2,5,2),ngl::Colour(1,1,1,1),ngl::Colour(1,1,1,1),ngl::POINTLIGHT );
+//    m_light->setTransform(iv);
+    // load these values to the shader as well
+    m_light->loadToShader("light");
+
+    ngl::Material m(ngl::GOLD);
+    // load our material values to the shader into the structure material (see Vertex shader)
+    m.loadToShader("material");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -168,6 +206,7 @@ void NGLScene::update()
 /***********************************************************************/
 
     m_flock.update(m_bbox, m_checkBoidBoid);
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 #include <ngl/Vec3.h>
 #include <ngl/VertexArrayObject.h>
 #include <ngl/BBox.h>
+#include <ngl/Material.h>
 #include "Boid.h"
 
 
@@ -23,11 +24,16 @@ public:
 
     ngl::Vec3 getAveragePos();
     std::vector <Boid> m_boidArray;
+    ngl::Vec3 m_seekLocation;
 
     ///reset the boid array
     void resetBoids();
-    //void setup();
-    void separate(std::vector <Boid> m_boidArray, ngl::Vec3 _pos1, ngl::Vec3 _pos2, GLfloat _radius1, GLfloat _radius2);
+    void setup();
+    void flock();
+
+
+
+
     void draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader);
     void update(ngl::BBox *_bbox, bool _checkBoidBoid);
 
@@ -52,6 +58,7 @@ public:
     void removeBoid();
     void addBoid();
     void move();
+    void applyBehaviors(std::vector <Boid> m_boidArray);
 
 private:
     ngl::Vec3 averagePosition;

@@ -281,7 +281,7 @@ void Boid::move()
     // store the last position
   m_lastPos=m_pos;
     // update the current position
-  m_pos+=m_dir*2;
+  m_pos+=m_dir;
     // get the next position
   m_nextPos=m_pos+m_dir;
   m_hit=false;

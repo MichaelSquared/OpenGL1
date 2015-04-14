@@ -3,10 +3,10 @@
 
 #include <ngl/ShaderLib.h>
 #include "ngl/Random.h"
+#include <ngl/Material.h>
 #include <ngl/BBox.h>
 #include <boost/foreach.hpp>
 #include <iostream>
-
 
 void Flock::resetBoids()
 {
@@ -28,73 +28,62 @@ void Flock::resetBoids()
                                    rng->randomPositiveNumber(2)+0.5));
     }
 }
-
 //----------------------------------------------------------------------------------------------------------------------
-void separate(std::vector <Boid> m_boidArray, ngl::Vec3 _pos1, ngl::Vec3 _pos2, GLfloat _radius1, GLfloat _radius2)
-{
-    //Inside this function, we’re going to loop through all of the vehicles and see if any are too close.
-    float desiredSeparation = 20;       //how close is too close
 
-    //the relative position of the boids
-    ngl::Vec3 relPos;
-    //min an max distances of the boids
-    GLfloat minDist;
-    GLfloat dist;
-    GLfloat len;
-    // and the distance
-    len=relPos.length();
-
-    minDist =_radius1 + _radius2;
-
-    ngl::Vec3 sum;    //start with an empty vector
-    int count = 0;
-
-    BOOST_FOREACH(Boid s, m_boidArray)
-    {
-        dist=len*len;
-
-        if ((dist > 0) && (dist < desiredSeparation))
-        {
-            relPos =_pos1 - _pos2;   //vector pointing away from the other boids
-            relPos.normalize();
-            sum += relPos;  //add all the vectors together/increament the count
-            count++;
-        }
-
-    }
-    if(count > 0)
-    {
-        sum /= count;
-    }
-}
-
-
+//void applyBehaviors(std::vector <Boid> m_boidArray)
+//{
+//    ngl::Vec3 separate = separate(m_boidArray);
+//    applyForce(separate);
+//}
 
 //----------------------------------------------------------------------------------------------------------------------
 void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader)
 {
     BOOST_FOREACH(Boid s, m_boidArray)
     {
+        //const bool fullbright = true;
+        const bool fullbright = s.isDiscoBoid() ;
+
         ngl::Random* rand = ngl::Random::instance();
         ngl::Colour boidColour = s.isDiscoBoid() ? rand->getRandomColour() : s.getBoidColour();
 
-        shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
-        s.draw("nglColourShader",_mouseGlobalTX, _cam);
-
-        //s.separate(m_boidArray)
-
+        if(fullbright)
+        {
+            shader->setShaderParam4f("Colour", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
+            s.draw("nglColourShader",_mouseGlobalTX, _cam);
+        }
+        else
+        {
+            shader->setShaderParam4f("material.diffuse", boidColour.m_r, boidColour.m_g, boidColour.m_b, 1); // Set shader colour
+            s.draw("Phong",_mouseGlobalTX, _cam);
+        }
     }
 }
 //----------------------------------------------------------------------------------------------------------------------
 
 void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid)
 {
-    BOOST_FOREACH(Boid &s, m_boidArray)
-    {
-        s.move();
-    }
+//    static float time = 0;
+//    time+= 0.15f;
+//    const ngl::Vec3 seekLocation = 48 * ngl::Vec3(sin(time), sin(time), sin(time));
 
-    checkCollisions(_bbox, _checkBoidBoid);
+    checkCollisions(_bbox, false);
+
+//    ngl::Random* rand = ngl::Random::instance();
+//    if((averagePosition - m_seekLocation).lengthSquared() < 32)
+//    {
+//        m_seekLocation = rand->getRandomNormalizedVec3() * 32;
+//    }
+
+//    const ngl::Vec3 seekLocation(16, 16, 4);
+    BOOST_FOREACH(Boid &boid, m_boidArray)
+    {
+        //s.arrive(m_seekLocation);
+        boid.separate(m_boidArray);
+        boid.align(m_boidArray);
+        boid.cohesion(m_boidArray);
+        boid.update();
+    }
 }
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -177,6 +166,15 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
         s.setHit();
       }//end of hit test
      }//end of each face test
+
+    // Quick fix to reset particles that escape the bounding box
+//    if( !((ext[0] > s.getPos().m_x) && (-ext[0] < s.getPos().m_x)) &&
+//         ((ext[2] > s.getPos().m_y) && (-ext[2] < s.getPos().m_y)) &&
+//         ((ext[4] > s.getPos().m_z) && (-ext[4] < s.getPos().m_z)) )
+//    {
+//        s.setPosition( ngl::Vec3(0,0,0) );
+//    }
+
     }//end of for
 }
 //----------------------------------------------------------------------------------------------------------------------
@@ -233,6 +231,7 @@ void Flock::addBoid()
 
 ngl::Vec3 Flock::getAveragePos()
 {
+
     for(unsigned int i = 0; i < m_boidArray.size(); i++)
     {
         averagePosition += m_boidArray[i].getPos();
@@ -253,19 +252,6 @@ ngl::Vec3 Flock::getCurrentToAveragePos()
 
     return currentToAveragePosition;
 }
-
-
 //----------------------------------------------------------------------------------------------------------------------
 
-void Boid::move()
-{
-    // store the last position
-  m_lastPos=m_pos;
-    // update the current position
-  m_pos+=m_dir;
-    // get the next position
-  m_nextPos=m_pos+m_dir;
-  m_hit=false;
-
-}
 

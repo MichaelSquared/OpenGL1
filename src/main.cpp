@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   int numBoids;
   if(argc == 1)
   {
-    numBoids=100;
+    numBoids=200;
   }
   else
   {
