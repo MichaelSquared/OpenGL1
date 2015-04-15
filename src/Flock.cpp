@@ -30,13 +30,6 @@ void Flock::resetBoids()
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-//void applyBehaviors(std::vector <Boid> m_boidArray)
-//{
-//    ngl::Vec3 separate = separate(m_boidArray);
-//    applyForce(separate);
-//}
-
-//----------------------------------------------------------------------------------------------------------------------
 void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader)
 {
     BOOST_FOREACH(Boid s, m_boidArray)
@@ -113,21 +106,20 @@ void Flock::checkBoidCollisions()
             // don't check against self
             if(ToCheck == Current)  continue;
 
-      else
-      {
-        //cout <<"doing check"<<endl;
-        collide = boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
-                                       m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
-                                      );
+//      else
+//      {
+//        //cout <<"doing check"<<endl;
+//        collide = boidBoidCollision(m_boidArray[Current].getPos(),m_boidArray[Current].getRadius(),
+//                                       m_boidArray[ToCheck].getPos(),m_boidArray[ToCheck].getRadius()
+//                                      );
         if(collide == true)
         {
           m_boidArray[Current].reverse();
-          m_boidArray[Current].setHit();
         }
       }
     }
   }
-}
+//}
 //----------------------------------------------------------------------------------------------------------------------
 
 void Flock::BBoxCollision(ngl::BBox *_bbox)
@@ -165,7 +157,7 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
         GLfloat x= 2*( s.getDirection().dot((_bbox->getNormalArray()[i])));
         ngl::Vec3 d =_bbox->getNormalArray()[i]*x;
         s.setDirection(s.getDirection()-d);
-        s.setHit();
+//        s.setHit();
       }//end of hit test
      }//end of each face test
 
@@ -181,29 +173,28 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-bool Flock::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
-{
-  // the relative position of the boids
-  ngl::Vec3 relPos;
-  //min an max distances of the boids
-  GLfloat dist;
-  GLfloat minDist;
-  GLfloat len;
-  relPos =_pos1-_pos2;
-  // and the distance
-  len=relPos.length();
-  dist=len*len;
-  minDist =_radius1+_radius2;
-  // if it is a hit
-  if(dist <=(minDist * minDist))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
+//bool Flock::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
+//{
+//  // the relative position of the boids
+//  ngl::Vec3 relPos;
+//  //min an max distances of the boids
+//  GLfloat dist;
+//  GLfloat minDist;
+//  GLfloat len;
+//  relPos =_pos1-_pos2;
+//  // and the distance
+//  len=relPos.length();
+//  dist=len*len;
+//  minDist =_radius1+_radius2;
+//  if(dist <=(minDist * minDist))
+//  {
+//    return true;
+//  }
+//  else
+//  {
+//    return false;
+//  }
+//}
 //----------------------------------------------------------------------------------------------------------------------
 
 void Flock::removeBoid()
@@ -230,7 +221,7 @@ void Flock::addBoid()
   ++m_numBoids;
 }
 //----------------------------------------------------------------------------------------------------------------------
-
+///------------Average_Posititon_of_the_boids-------------//
 ngl::Vec3 Flock::getAveragePos()
 {
 
@@ -244,16 +235,5 @@ ngl::Vec3 Flock::getAveragePos()
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-ngl::Vec3 Flock::getCurrentToAveragePos()
-{
-    for(unsigned int i = 0; i < m_boidArray.size(); i++)
-    {
-        averagePosition += m_boidArray[i].getPos();
-        currentToAveragePosition = averagePosition - m_boidArray[i].getPos();
-    }
-
-    return currentToAveragePosition;
-}
-//----------------------------------------------------------------------------------------------------------------------
 
 

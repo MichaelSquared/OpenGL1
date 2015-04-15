@@ -20,19 +20,16 @@ public:
         s_extents = _extents;
     }
 
-    ~Flock() {};
+    ~Flock() {}; //dctor
 
     ngl::Vec3 getAveragePos();
-    std::vector <Boid> m_boidArray;
+    std::vector <Boid> m_boidArray;  //boid arrayList
     ngl::Vec3 m_seekLocation;
 
     ///reset the boid array
     void resetBoids();
     void setup();
     void flock();
-
-
-
 
     void draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader);
     void update(ngl::BBox *_bbox, bool _checkBoidBoid, ngl::Vec3 _seekLocation);
@@ -63,9 +60,7 @@ public:
 private:
     ngl::Vec3 averagePosition;
     float s_extents;
-    int m_numBoids;
-    ngl::Vec3 currentToAveragePosition;
-
+    int m_numBoids;  //number of boids
 };
 
 

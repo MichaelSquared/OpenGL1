@@ -14,10 +14,11 @@ class Boid
 public :
 
 	/// @brief ctor
-    /// @param pos the position of the boid
-    /// @param rad the radius of the boid
+    /// @param _pos the position of the boid
+    /// @param _dir the direction of the boid
+    /// @param _rad the radius of the boid
     Boid(ngl::Vec3 _pos,  ngl::Vec3 _dir, GLfloat _rad); //ctor
-    /// the position of the Boid
+
 
     Boid();  //default ctor
 
@@ -25,11 +26,6 @@ public :
     void draw(const std::string &_shaderName, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const ;
     void loadMatricesToShader(ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const;
     inline void reverse(){m_dir=m_dir*-1.0;}
-
-    //---------------------Wireframe----------------------//
-    inline void setHit(){m_hit=true;}
-    inline void setNotHit(){m_hit=false;}
-    inline bool isHit()const {return m_hit;}
 
     //---------------------Position-----------------------//
     inline ngl::Vec3 getPos() const {return m_pos;}
@@ -45,6 +41,7 @@ public :
     //-----------------------Move-------------------------//
 	void move();
 
+    //---------------------Behaviors----------------------//
     void separate(std::vector <Boid>& _boidArray);
     ngl::Vec3 align(std::vector <Boid>& _boidArray);
     ngl::Vec3 cohesion(std::vector <Boid>& _boidArray);
@@ -97,8 +94,6 @@ private :
 
     /*! the radius of the boid */
 	GLfloat m_radius;
-    /*! flag to indicate if the boid has been hit by ray */
-    bool m_hit;
     // the direction of the boid
     ngl::Vec3 m_dir;
     // the last position of the boid

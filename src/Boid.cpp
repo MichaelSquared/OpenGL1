@@ -10,18 +10,17 @@
 Boid::Boid(ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
 {
     //--set values from params--//
-    //m_pos=_pos;
-    m_pos=0,0,0;
+    m_pos=0,0,0; //appear in the center of the boundingBox
     m_dir=_dir;
     //ngl::Random *rng=ngl::Random::instance();
     //float angle = rng->randomNumber(M_PI);
-    //m_dir=(cos(angle), sin(angle), cos(angle);
+    //m_dir=(cos(angle), sin(angle), cos(angle));
     m_radius=0.5;
-    m_hit=false;
 
-
-    m_maxSpeed = 2;     //???????????????????
-    m_maxForce = 0.05;  //?
+    ///max speed of the flock
+    m_maxSpeed = 0.9;
+    ///max force of the flock
+    m_maxForce = 0.05;
 
     //---------------------------------Colour--------------------------------------//
     ngl::Random *rand = ngl::Random::instance();     //Created a pointer
@@ -33,11 +32,6 @@ Boid::Boid(ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
     update();
 }
 
-//default ctor
-Boid::Boid()
-{
-  m_hit=false;
-}
 //----------------------------------------------------------------------------------------------------------------------
 
 void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam  ) const
@@ -57,19 +51,6 @@ void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_glo
 
 void Boid::draw( const std::string &_shaderName, const ngl::Mat4 &_globalMat,  ngl::Camera *_cam )const
 {
-//--------------------------------------------//
-//-----------Draw wireframe if hit------------//
-//--------------------------------------------//
-    if(m_hit==true)
-    {
-        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-    }
-
-
 //--------------------------------------------//
 //-----------------Draw Boid------------------//
 //--------------------------------------------//
@@ -126,9 +107,8 @@ void Boid::update()
     m_dir.clamp(-m_maxSpeed, m_maxSpeed);
     m_pos += m_dir;
     m_acceleration *= 0;
-    m_hit=false;
 
-    //m_pos.m_z = 0;
+    //m_pos.m_z = 0; //move in 2D
 }
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -283,5 +263,4 @@ void Boid::move()
   m_pos+=m_dir;
     // get the next position
   m_nextPos=m_pos+m_dir;
-  m_hit=false;
 }
