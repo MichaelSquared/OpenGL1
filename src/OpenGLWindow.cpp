@@ -26,7 +26,6 @@ OpenGLWindow::~OpenGLWindow()
   delete m_device;
 }
 
-
 void OpenGLWindow::renderLater()
 {
   // this method allows us to post an event and render once the system is ready see the event processing

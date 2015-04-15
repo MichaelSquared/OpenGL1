@@ -19,9 +19,6 @@ public :
     /// @param _rad the radius of the boid
     Boid(ngl::Vec3 _pos,  ngl::Vec3 _dir, GLfloat _rad); //ctor
 
-
-    Boid();  //default ctor
-
     //---------------------Draw_Method--------------------//
     void draw(const std::string &_shaderName, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const ;
     void loadMatricesToShader(ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam )const;
@@ -47,38 +44,24 @@ public :
     ngl::Vec3 cohesion(std::vector <Boid>& _boidArray);
 
     /// set the boid values
-	/// @param[in] _pos the position to set
+    /// @param[in] _pos the position to set
     /// @param[in] _dir the direction of the boid
     /// @param[in] _rad the radius of the boid
     void set(ngl::Vec3 _pos, ngl::Vec3 _dir, GLfloat _rad );
+    //void setPosition(ngl::Vec3 _pos) { m_pos = _pos; }                 //???
 
-    void setPosition(ngl::Vec3 _pos) { m_pos = _pos; }
+    //------------------------Color------------------------//
+    inline ngl::Colour getBoidColour() {return m_boidColour;}
+    inline bool isDiscoBoid() {return m_discoStyle;}
 
-    inline ngl::Colour getBoidColour()
-    {
-        return m_boidColour;
-    }
-
-    inline bool isDiscoBoid()
-    {
-        return m_discoStyle;
-    }
-
-/************************************************************************/
     void seek(ngl::Vec3 target);
     void applyForce(ngl::Vec3 force);
-
     void update();
     void arrive(ngl::Vec3 target);
-
-    ///void arrive(ngl::Vec3 target);
-
     void setup();
-/************************************************************************/
 
 private :
 
-/*******************************************************************************************/
     /// the position of the Boid
     ngl::Vec3 m_pos;
     /// the acceleration of the Boid
@@ -90,9 +73,8 @@ private :
     /// Colour
     ngl::Colour m_boidColour;
     bool m_discoStyle;
-/*******************************************************************************************/
 
-    /*! the radius of the boid */
+    // the radius of the boid
 	GLfloat m_radius;
     // the direction of the boid
     ngl::Vec3 m_dir;

@@ -43,16 +43,16 @@ NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent), m_fl
   m_flock.resetBoids();
   m_drawFlockCenter = false;
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 NGLScene::~NGLScene()
 {
   ngl::NGLInit *Init = ngl::NGLInit::instance();
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
   Init->NGLQuit();
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::resizeEvent(QResizeEvent *_event )
 {
   if(isExposed())
@@ -100,7 +100,7 @@ void NGLScene::initialize()
     ngl::VAOPrimitives *prim=ngl::VAOPrimitives::instance();
     prim->createSphere("sphere",2,8);
 
-    // Initialise gold shader
+    // Initialise shader
     ngl::ShaderLib *shader=ngl::ShaderLib::instance();
     // we are creating a shader called Phong
     shader->createShaderProgram("Phong");
@@ -131,7 +131,6 @@ void NGLScene::initialize()
     // the shader will use the currently active material and light0 so set them
 
     m_light = new ngl::Light(ngl::Vec3(-2,5,2),ngl::Colour(1,1,1,1),ngl::Colour(1,1,1,1),ngl::POINTLIGHT );
-//    m_light->setTransform(iv);
     // load these values to the shader as well
     m_light->loadToShader("light");
 
@@ -139,8 +138,8 @@ void NGLScene::initialize()
     // load our material values to the shader into the structure material (see Vertex shader)
     m.loadToShader("material");
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::loadMatricesToColourShader()
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
@@ -151,10 +150,9 @@ void NGLScene::loadMatricesToColourShader()
   MV= m_transform*m_mouseGlobalTX*m_cam->getViewMatrix() ;
   MVP=MV*m_cam->getProjectionMatrix();
   shader->setShaderParamFromMat4("MVP",MVP);
-
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::render()
 {
     // clear the screen and depth buffer
@@ -201,21 +199,12 @@ void NGLScene::render()
 
     m_flock.draw(m_mouseGlobalTX, m_cam, shader);
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::update()
 {
-
-/***********************************************************************/
-    //m_velocity += m_acceleration;
-    //m_velocity.limit(maxSpeed);
-    //m_pos += m_velocity;
-    //m_accelaration *= 0;
-/***********************************************************************/
-
     std::cout << m_modelPos << std::endl;
     m_flock.update(m_bbox, m_checkBoidBoid, m_modelPos);
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -237,7 +226,7 @@ void NGLScene::mouseMoveEvent(QMouseEvent * _event)
     renderLater();
 
   }
-        // right mouse translate code
+  // right mouse translate code
   else if(m_translate && _event->buttons() == Qt::RightButton)
   {
     int diffX = (int)(_event->x() - m_origXPos);
@@ -250,8 +239,8 @@ void NGLScene::mouseMoveEvent(QMouseEvent * _event)
 
    }
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::mousePressEvent ( QMouseEvent * _event)
 {
   // this method is called when the mouse button is pressed in this case we
@@ -271,8 +260,8 @@ void NGLScene::mousePressEvent ( QMouseEvent * _event)
   }
 
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::mouseReleaseEvent ( QMouseEvent * _event )
 {
   // this event is called when the mouse button is released
@@ -281,14 +270,14 @@ void NGLScene::mouseReleaseEvent ( QMouseEvent * _event )
   {
     m_rotate=false;
   }
-        // right mouse translate mode
+  // right mouse translate mode
   if (_event->button() == Qt::RightButton)
   {
     m_translate=false;
   }
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::wheelEvent(QWheelEvent *_event)
 {
 
@@ -303,8 +292,8 @@ void NGLScene::wheelEvent(QWheelEvent *_event)
 	}
 	renderLater();
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::keyPressEvent(QKeyEvent *_event)
 {
   // this method is called every time the main window recives a key event.
@@ -328,8 +317,8 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   }
     renderLater();
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::timerEvent(QTimerEvent *_event )
 {
     if(_event->timerId() == m_boidUpdateTimer)
@@ -342,14 +331,14 @@ void NGLScene::timerEvent(QTimerEvent *_event )
 		renderNow();
 	}
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::removeBoid()
 {
     m_flock.removeBoid();
 }
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void NGLScene::addBoid()
 {
     m_flock.addBoid();

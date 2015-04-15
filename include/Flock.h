@@ -13,6 +13,7 @@
 class Flock
 {
 public:
+
     Flock( int _numOfBoids, float _extents )
         : m_numBoids(_numOfBoids)
     {
@@ -42,15 +43,6 @@ public:
 
     /// @brief check the bounding box collisions
     void  BBoxCollision(ngl::BBox *_bbox);
-
-    /// do the actual boidboid collisions
-    /// _pos1 the position of the first boid
-    /// _radius1 the radius of the first boid
-    /// _pos2 the position of the second boid
-    /// _radius2 the radius of the second boid
-    bool  boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 );
-
-    ngl::Vec3 getCurrentToAveragePos();
 
     void removeBoid();
     void addBoid();

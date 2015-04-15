@@ -146,7 +146,7 @@ void Boid::arrive(ngl::Vec3 target)
     desired.normalize();
     if(d < 100)
     {
-        float m = map(d, 0, 100, 0, m_maxSpeed);
+        float m = map(d, 0, 10, 0, m_maxSpeed);  //change speed for seeking the target //100 before
         desired *= m;
     }
     else
@@ -209,7 +209,7 @@ ngl::Vec3 Boid::align(std::vector <Boid>& _boidArray)
             count++;
         }
     }
-    //sum = sum/ _boidArray.size();
+
     if(count > 0)
     {
         sum /= count;
@@ -226,6 +226,7 @@ ngl::Vec3 Boid::align(std::vector <Boid>& _boidArray)
     }
 }
 //----------------------------------------------------------------------------------------------------------------------
+
 ngl::Vec3 Boid::cohesion(std::vector <Boid>& _boidArray)
 {
     float neighbordist = 50;
@@ -241,6 +242,7 @@ ngl::Vec3 Boid::cohesion(std::vector <Boid>& _boidArray)
         count++;
         }
     }
+
     if(count > 0)
     {
         sum /= count;
@@ -252,9 +254,8 @@ ngl::Vec3 Boid::cohesion(std::vector <Boid>& _boidArray)
     }
 
 }
-
-
 //----------------------------------------------------------------------------------------------------------------------
+
 void Boid::move()
 {
     // store the last position

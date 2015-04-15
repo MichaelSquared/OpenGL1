@@ -34,7 +34,6 @@ void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* sh
 {
     BOOST_FOREACH(Boid s, m_boidArray)
     {
-        //const bool fullbright = true;
         const bool fullbright = s.isDiscoBoid() ;
 
         ngl::Random* rand = ngl::Random::instance();
@@ -173,30 +172,6 @@ void Flock::BBoxCollision(ngl::BBox *_bbox)
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-//bool Flock::boidBoidCollision( ngl::Vec3 _pos1, GLfloat _radius1, ngl::Vec3 _pos2, GLfloat _radius2 )
-//{
-//  // the relative position of the boids
-//  ngl::Vec3 relPos;
-//  //min an max distances of the boids
-//  GLfloat dist;
-//  GLfloat minDist;
-//  GLfloat len;
-//  relPos =_pos1-_pos2;
-//  // and the distance
-//  len=relPos.length();
-//  dist=len*len;
-//  minDist =_radius1+_radius2;
-//  if(dist <=(minDist * minDist))
-//  {
-//    return true;
-//  }
-//  else
-//  {
-//    return false;
-//  }
-//}
-//----------------------------------------------------------------------------------------------------------------------
-
 void Flock::removeBoid()
 {
   std::vector<Boid>::iterator end=m_boidArray.end();
@@ -227,10 +202,10 @@ ngl::Vec3 Flock::getAveragePos()
 
     for(unsigned int i = 0; i < m_boidArray.size(); i++)
     {
-        averagePosition += m_boidArray[i].getPos();
+        averagePosition += m_boidArray[i].getPos();  //adding the position for every boid in the list
     }
 
-    averagePosition = averagePosition / m_boidArray.size();
+    averagePosition = averagePosition / m_boidArray.size(); //dividing by the number of boids
     return averagePosition;
 }
 //----------------------------------------------------------------------------------------------------------------------
