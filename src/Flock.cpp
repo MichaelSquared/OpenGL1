@@ -61,11 +61,13 @@ void Flock::draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* sh
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid)
+void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid, ngl::Vec3 _seekLocation)
 {
 //    static float time = 0;
 //    time+= 0.15f;
-//    const ngl::Vec3 seekLocation = 48 * ngl::Vec3(sin(time), sin(time), sin(time));
+//    m_seekLocation = 16 * ngl::Vec3(cos(time * 4), sin(time), tan(time * 2));
+
+    m_seekLocation = _seekLocation;
 
     checkCollisions(_bbox, false);
 
@@ -78,7 +80,7 @@ void Flock::update(ngl::BBox *_bbox, bool _checkBoidBoid)
 //    const ngl::Vec3 seekLocation(16, 16, 4);
     BOOST_FOREACH(Boid &boid, m_boidArray)
     {
-        //s.arrive(m_seekLocation);
+        boid.arrive(m_seekLocation);
         boid.separate(m_boidArray);
         boid.align(m_boidArray);
         boid.cohesion(m_boidArray);

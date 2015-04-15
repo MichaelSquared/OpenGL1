@@ -10,6 +10,7 @@
 #include <ngl/Material.h>
 #include <ngl/NGLInit.h>
 #include <ngl/VAOPrimitives.h>
+#include <ngl/NGLStream.h>
 
 #include <boost/foreach.hpp>
 #include "Boid.h"
@@ -18,7 +19,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for x/y translation with mouse movement
 //----------------------------------------------------------------------------------------------------------------------
-const static float INCREMENT=0.01;
+const static float INCREMENT=0.25; // old value was 0.01
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
@@ -40,7 +41,7 @@ NGLScene::NGLScene(int _numBoids,QWindow *_parent) : OpenGLWindow(_parent), m_fl
   m_checkBoidBoid=false;
   // create vectors for the position and direction
   m_flock.resetBoids();
-  m_drawFlockCenter = true;
+  m_drawFlockCenter = false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -168,9 +169,10 @@ void NGLScene::render()
     // multiply the rotations
     m_mouseGlobalTX=rotY*rotX;
     // add the translations
-    m_mouseGlobalTX.m_m[3][0] = m_modelPos.m_x;
-    m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
-    m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
+
+//    m_mouseGlobalTX.m_m[3][0] = m_modelPos.m_x;
+//    m_mouseGlobalTX.m_m[3][1] = m_modelPos.m_y;
+//    m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
 
     // grab an instance of the shader manager
     ngl::ShaderLib *shader=ngl::ShaderLib::instance();
@@ -181,15 +183,21 @@ void NGLScene::render()
     loadMatricesToColourShader();
     m_bbox->draw();
 
+    ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
+
     if(m_drawFlockCenter)
     {
       ngl::Vec3 avg = m_flock.getAveragePos();
       shader->setShaderParam4f("Colour",1,0.5,0,1); // Set shader colour to orange
       m_transform.translate(avg.m_x, avg.m_y, avg.m_z);
       loadMatricesToColourShader();
-      ngl::VAOPrimitives* prim = ngl::VAOPrimitives::instance();
       prim->draw("sphere");
     }
+
+    m_transform.identity();
+    m_transform.translate(m_modelPos.m_x, m_modelPos.m_y, m_modelPos.m_z);
+    loadMatricesToColourShader();
+    prim->draw("sphere");
 
     m_flock.draw(m_mouseGlobalTX, m_cam, shader);
 }
@@ -205,7 +213,8 @@ void NGLScene::update()
     //m_accelaration *= 0;
 /***********************************************************************/
 
-    m_flock.update(m_bbox, m_checkBoidBoid);
+    std::cout << m_modelPos << std::endl;
+    m_flock.update(m_bbox, m_checkBoidBoid, m_modelPos);
 
 }
 

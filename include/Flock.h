@@ -35,7 +35,7 @@ public:
 
 
     void draw(ngl::Mat4 _mouseGlobalTX, ngl::Camera *_cam, ngl::ShaderLib* shader);
-    void update(ngl::BBox *_bbox, bool _checkBoidBoid);
+    void update(ngl::BBox *_bbox, bool _checkBoidBoid, ngl::Vec3 _seekLocation);
 
     /// check the collisions
     void  checkCollisions(ngl::BBox *_bbox, bool _checkBoidBoid);

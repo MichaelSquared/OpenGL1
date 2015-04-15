@@ -20,15 +20,15 @@ Boid::Boid(ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
     m_hit=false;
 
 
-    m_maxSpeed = 1;     //???????????????????
-    m_maxForce = 0.1;  //?
+    m_maxSpeed = 2;     //???????????????????
+    m_maxForce = 0.05;  //?
 
     //---------------------------------Colour--------------------------------------//
     ngl::Random *rand = ngl::Random::instance();     //Created a pointer
     m_boidColour = rand->getRandomColour();          //Pointing at ->getRandomColour()
-    const float probabilityOfDisco = 1.0;            //Value/number of disco boids
+    const float probabilityOfDisco = 0.3;            //Value/number of disco boids
     //-------------Randomly decide if this boid is a disco boid or not-------------//
-    m_discoStyle = (bool)(fmod(rand->randomPositiveNumber(), 1) > probabilityOfDisco);
+    m_discoStyle = (bool)(fmod(rand->randomPositiveNumber(), 1) < probabilityOfDisco);
 
     update();
 }
@@ -167,7 +167,6 @@ void Boid::arrive(ngl::Vec3 target)
     if(d < 100)
     {
         float m = map(d, 0, 100, 0, m_maxSpeed);
-        std::cout << m << std::endl;
         desired *= m;
     }
     else
@@ -281,7 +280,7 @@ void Boid::move()
     // store the last position
   m_lastPos=m_pos;
     // update the current position
-  m_pos+=m_dir*2;
+  m_pos+=m_dir;
     // get the next position
   m_nextPos=m_pos+m_dir;
   m_hit=false;
