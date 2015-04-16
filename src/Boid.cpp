@@ -25,13 +25,12 @@ Boid::Boid(ngl::Vec3 _pos, ngl::Vec3 _dir,  GLfloat _rad)
     //---------------------------------Colour--------------------------------------//
     ngl::Random *rand = ngl::Random::instance();     //Created a pointer
     m_boidColour = rand->getRandomColour();          //Pointing at ->getRandomColour()
-    const float probabilityOfDisco = 0.3;            //Value/number of disco boids
+    const float probabilityOfDisco = 0;            //Value/number of disco boids
     //-------------Randomly decide if this boid is a disco boid or not-------------//
     m_discoStyle = (bool)(fmod(rand->randomPositiveNumber(), 1) < probabilityOfDisco);
 
     update();
 }
-
 //----------------------------------------------------------------------------------------------------------------------
 
 void Boid::loadMatricesToShader( ngl::Transformation &_tx, const ngl::Mat4 &_globalMat, ngl::Camera *_cam  ) const
